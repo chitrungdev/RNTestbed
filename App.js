@@ -6,54 +6,89 @@ import {
   View,
   TouchableOpacity
 } from "react-native"
-// import firebase from "./Firebase"
-import * as firebase from "firebase"
+import firebase from "./Firebase"
+// import * as firebase from "firebase"
+// import firestore from "firebase/firestore"
 
 export default class App extends Component {
   constructor() {
     super()
-    this.ref = firebase.firestore().collection("collection")
-    this.unsubscribe = null
-    state: [{ email: "", password: "", errorMessage: null }]
+    // this.ref = firebase.firestore().collection("collection")
+    // this.unsubscribe = null
+    this.state = {
+      emailSU: "",
+      passwordSU: "",
+      errorMessageSU: null,
+      emailSI: "",
+      passwordSI: "",
+      errorMessageSI: null,
+      uid: "",
+      address: ""
+    }
   }
-  onCollectionUpdate = querySnapshot => {
-    querySnapshot.forEach(doc => {
-      console.log(doc.data())
-    })
-  }
-  componentDidMount() {
-    this.unsubscribe = this.ref.onSnapshot(this.onCollectionUpdate)
-  }
+  // onCollectionUpdate = querySnapshot => {
+  //   querySnapshot.forEach(doc => {
+  //     console.log(doc.data())
+  //   })
+  // }
+  // componentDidMount() {
+  //   this.unsubscribe = this.ref.onSnapshot(this.onCollectionUpdate)
+  // }
   render() {
     return (
       <View style={styles.container}>
-        <View style={{ height: "50%", width: "100%" }}>
+        <View style={{ width: "100%" }}>
           <Text>UserName</Text>
           <TextInput
-            style={{ flex: 1, borderWidth: 0.5 }}
-            onChangeText={email => this.setState({ email })}
-            value={this.state.email}
+            style={{ height: 50, width: "100%", borderWidth: 0.5 }}
+            onChangeText={emailSU => this.setState({ emailSU })}
+            value={this.state.emailSU}
           />
           <Text>Pass</Text>
           <TextInput
-            style={{ flex: 1, borderWidth: 0.5 }}
-            onChangeText={password => this.setState({ password })}
-            value={this.state.password}
+            style={{ height: 50, width: "100%", borderWidth: 0.5 }}
+            onChangeText={passwordSU => this.setState({ passwordSU })}
+            value={this.state.passwordSU}
           />
           <TouchableOpacity
-            onpress={this.handleSignUp.bind()}
-            style={{ flex: 1 }}
+            onPress={this.handleSignUp}
+            style={{ height: 50, width: "100%", borderWidth: 0.5 }}
           >
             <Text>Dang Ky</Text>
           </TouchableOpacity>
         </View>
-        <View style={{ height: "50%", width: "100%" }}>
+        <View style={{ width: "100%" }}>
           <Text>UserName</Text>
-          <TextInput style={{ flex: 1, borderWidth: 0.5 }} />
+          <TextInput
+            style={{ height: 50, width: "100%", borderWidth: 0.5 }}
+            onChangeText={emailSI => this.setState({ emailSI })}
+            value={this.state.emailSI}
+          />
           <Text>Pass</Text>
-          <TextInput style={{ flex: 1, borderWidth: 0.5 }} />
-          <TouchableOpacity style={{ flex: 1 }}>
+          <TextInput
+            style={{ height: 50, width: "100%", borderWidth: 0.5 }}
+            onChangeText={passwordSI => this.setState({ passwordSI })}
+            value={this.state.passwordSI}
+          />
+          <TouchableOpacity
+            onPress={this.handleSignIn}
+            style={{ height: 50, width: "100%", borderWidth: 0.5 }}
+          >
             <Text>Dang nhap</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={{ width: "100%" }}>
+          <Text>Address</Text>
+          <TextInput
+            style={{ height: 50, width: "100%", borderWidth: 0.5 }}
+            onChangeText={address => this.setState({ address })}
+            value={this.state.address}
+          />
+          <TouchableOpacity
+            onPress={this.addAddress}
+            style={{ height: 50, width: "100%", borderWidth: 0.5 }}
+          >
+            <Text>Them Dia Chi</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -62,9 +97,34 @@ export default class App extends Component {
   handleSignUp = () => {
     firebase
       .auth()
-      .createUserWithEmailAndPassword(this.state.email, this.state.password)
-      .then(() => this.props.navigation.navigate("Main"))
-      .catch(error => this.setState({ errorMessage: error.message }))
+      .createUserWithEmailAndPassword(this.state.emailSU, this.state.passwordSU)
+      .then(() => console.log("Success"))
+      .catch(error => console.log(error.message))
+  }
+  handleSignIn = () => {
+    const { emailSI, passwordSI } = this.state
+    firebase
+      .auth()
+      .signInWithEmailAndPassword(emailSI, passwordSI)
+      .then(response => {
+        this.setState({ uid: response.user.uid })
+        console.log("Success")
+      })
+      .catch(error => console.log(error.message))
+  }
+  addAddress = () => {
+    var key = firebase
+      .database()
+      .ref()
+      .child("test1")
+      .push().key
+    var updates = {}
+    updates["/test1/" + key] = this.state.address
+    updates["/user-test1/" + this.state.uid + "/" + key] = this.state.address
+    return firebase
+      .database()
+      .ref()
+      .update(updates)
   }
 }
 
