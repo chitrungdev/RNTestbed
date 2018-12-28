@@ -8,7 +8,7 @@ import {
 } from "react-native"
 import firebase from "./Firebase"
 // import * as firebase from "firebase"
-// import firestore from "firebase/firestore"
+import firestore from "firebase/firestore"
 
 export default class App extends Component {
   constructor() {
@@ -91,6 +91,12 @@ export default class App extends Component {
             <Text>Them Dia Chi</Text>
           </TouchableOpacity>
         </View>
+        <TouchableOpacity
+          onPress={this.getAddress}
+          style={{ height: 50, width: "100%", borderWidth: 0.5 }}
+        >
+          <Text>Lay Dia Chi</Text>
+        </TouchableOpacity>
       </View>
     )
   }
@@ -113,18 +119,29 @@ export default class App extends Component {
       .catch(error => console.log(error.message))
   }
   addAddress = () => {
-    var key = firebase
-      .database()
-      .ref()
-      .child("test1")
-      .push().key
-    var updates = {}
-    updates["/test1/" + key] = this.state.address
-    updates["/user-test1/" + this.state.uid + "/" + key] = this.state.address
-    return firebase
-      .database()
-      .ref()
-      .update(updates)
+    data = { Address: this.state.address }
+    firebase
+      .firestore()
+      .collection("Address")
+      .doc(this.state.uid)
+      .set(data)
+      .then(() => console.log("Success"))
+      .catch(error => console.log(error.message))
+  }
+  getAddress = () => {
+    let me = this
+    address = firebase
+      .firestore()
+      .collection("Address")
+      .doc(this.state.uid)
+      .get()
+      .then(doc => {
+        me.setState({ address: doc.data().Address })
+        console.log("Success")
+      })
+      .catch(function(error) {
+        console.log("Error getting document:", error)
+      })
   }
 }
 
