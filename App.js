@@ -9,6 +9,7 @@ import {
 import firebase from "./Firebase"
 // import * as firebase from "firebase"
 import firestore from "firebase/firestore"
+import { LoginManager, AccessToken } from "react-native-fbsdk"
 
 export default class App extends Component {
   constructor() {
@@ -26,17 +27,14 @@ export default class App extends Component {
       address: ""
     }
   }
-  // onCollectionUpdate = querySnapshot => {
-  //   querySnapshot.forEach(doc => {
-  //     console.log(doc.data())
-  //   })
-  // }
-  // componentDidMount() {
-  //   this.unsubscribe = this.ref.onSnapshot(this.onCollectionUpdate)
-  // }
   render() {
     return (
       <View style={styles.container}>
+        <View style={{ width: "100%" }}>
+          <TouchableOpacity onPress={this._fbAuth}>
+            <Text>Login With Facebook</Text>
+          </TouchableOpacity>
+        </View>
         <View style={{ width: "100%" }}>
           <Text>UserName</Text>
           <TextInput
@@ -142,6 +140,35 @@ export default class App extends Component {
       .catch(function(error) {
         console.log("Error getting document:", error)
       })
+  }
+  _fbAuth = () => {
+    let me = this
+    LoginManager.logInWithReadPermissions(["email"]).then(
+      function(result) {
+        if (result.isCancelled) {
+          console.log("Login Cancelled")
+        } else {
+          AccessToken.getCurrentAccessToken().then(data => {
+            const credential = firebase.auth.FacebookAuthProvider.credential(
+              data.accessToken
+            )
+            firebase
+              .auth()
+              .signInWithCredential(credential)
+              .then(response => {
+                me.setState({ uid: response.uid })
+                console.log("Success")
+              })
+              .catch(error => {
+                console.log(error)
+              })
+          })
+        }
+      },
+      function(error) {
+        console.log("some error occurred!!")
+      }
+    )
   }
 }
 
